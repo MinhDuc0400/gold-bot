@@ -1,0 +1,35 @@
+{
+  "name": "gold-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for tracking Vietnam & world gold prices",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": ["telegram", "bot", "gold", "prices", "vietnam"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "telegraf": "^4.12.0",
+    "playwright": "^1.40.0",
+    "axios": "^1.6.0",
+    "node-cron": "^3.0.2",
+    "dotenv": "^16.3.1",
+    "pino": "^8.17.0",
+    "pino-pretty": "^10.2.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.0",
+    "nodemon": "^3.0.2",
+    "@types/node-cron": "^3.0.11",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
+  }
+}
