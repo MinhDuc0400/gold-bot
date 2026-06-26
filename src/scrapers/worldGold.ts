@@ -6,7 +6,7 @@ import { logger } from '../utils/logger';
 async function fetchGoldAPI(): Promise<WorldGoldPrice | null> {
   try {
     const response = await axios.get(config.goldapi.url, {
-      timeout: config.goldapi.timeout,
+      timeout: 5_000,
       headers: {
         'x-access-token': config.goldapi.key,
         'Content-Type': 'application/json',

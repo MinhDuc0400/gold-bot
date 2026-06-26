@@ -5,7 +5,7 @@ import { logger } from '../utils/logger';
 async function fetchVietcombank(): Promise<number | null> {
   try {
     const response = await axios.get(config.vietcombank.url, {
-      timeout: 10_000,
+      timeout: 5_000,
       headers: { 'User-Agent': 'Mozilla/5.0' },
     });
 
