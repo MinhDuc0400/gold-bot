@@ -15,7 +15,7 @@ export interface GoldData {
   vnPrice: {
     sellPrice: number; // VND/cây
     source: 'sjc';
-  };
+  } | null;            // null when BTMC is unreachable
   worldPrice: {
     askPrice: number;  // USD/oz
     source: 'goldapi' | 'yahoo' | 'tradingview';
