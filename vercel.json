@@ -10,5 +10,6 @@
   "functions": {
     "api/webhook.ts": { "maxDuration": 30 },
     "api/cron.ts": { "maxDuration": 30 }
-  }
+  },
+  "regions": ["sin1"]
 }

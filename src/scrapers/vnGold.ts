@@ -4,7 +4,7 @@ import { config } from '../config';
 import { logger } from '../utils/logger';
 
 export async function fetchVNGoldPrice(): Promise<SJCPrice> {
-  const response = await axios.get(config.btmc.url, { timeout: 8_000 });
+  const response = await axios.get(config.btmc.url, { timeout: 20_000 });
   const items: Record<string, string>[] = response.data?.DataList?.Data ?? [];
 
   for (const item of items) {
