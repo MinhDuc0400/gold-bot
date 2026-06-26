@@ -1,25 +1,25 @@
 export interface SJCPrice {
   source: 'sjc';
-  buyPrice: number;
+  sellPrice: number;   // VND/cây
   timestamp: Date;
   url: string;
 }
 
 export interface WorldGoldPrice {
-  spotPrice: number;
+  askPrice: number;    // USD/oz
   timestamp: Date;
-  source: 'metals.live' | 'tradingview';
+  source: 'goldapi' | 'yahoo' | 'tradingview';
 }
 
 export interface GoldData {
   vnPrice: {
-    buyPrice: number;
+    sellPrice: number; // VND/cây
     source: 'sjc';
   };
   worldPrice: {
-    spotPrice: number;
-    source: 'metals.live' | 'tradingview';
+    askPrice: number;  // USD/oz
+    source: 'goldapi' | 'yahoo' | 'tradingview';
   };
-  exchangeRate: number;
+  exchangeRate: number; // VND/USD
   timestamp: Date;
 }

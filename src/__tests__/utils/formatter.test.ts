@@ -2,17 +2,16 @@ import { formatGoldMessage } from '../../utils/formatter';
 import { GoldData } from '../../types';
 
 const mockData: GoldData = {
-  vnPrice: { buyPrice: 155_000_000, source: 'sjc' },
-  worldPrice: { spotPrice: 4070.25, source: 'metals.live' },
+  vnPrice: { sellPrice: 14_700_000, source: 'sjc' },   // VND/cây
+  worldPrice: { askPrice: 4070.25, source: 'goldapi' }, // USD/oz
   exchangeRate: 26_500,
   timestamp: new Date(),
 };
 
 describe('formatGoldMessage', () => {
-  test('includes VN price per cây', () => {
+  test('includes VN sell price per cây', () => {
     const msg = formatGoldMessage(mockData);
-    // 155_000_000 / 10 = 15_500_000
-    expect(msg).toContain('15.500.000');
+    expect(msg).toContain('14.700.000');
   });
 
   test('shows positive delta with up arrow', () => {
@@ -23,7 +22,7 @@ describe('formatGoldMessage', () => {
 
   test('lists correct sources', () => {
     const msg = formatGoldMessage(mockData);
-    expect(msg).toContain('SJC');
-    expect(msg).toContain('metals.live');
+    expect(msg).toContain('BTMC/SJC');
+    expect(msg).toContain('goldapi');
   });
 });

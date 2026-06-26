@@ -1,18 +1,23 @@
 export const config = {
   sjc: {
     url: 'https://sjc.com.vn/',
-    minValidPrice: 100_000_000,
+    minValidPricePerLuong: 100_000_000, // VND/lượng sanity check for scrape
+    minValidPricePerCay: 10_000_000,    // VND/cây sanity check
   },
-  metals: {
-    url: 'https://api.metals.live/v1/spot/gold',
+  btmc: {
+    url: 'http://api.btmc.vn/api/BTMCAPI/getpricebtmc?key=3kd8ub1llcg9t45hnoh8hmn7t5kc2v',
+  },
+  vietcombank: {
+    url: 'https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=68',
+  },
+  goldapi: {
+    url: 'https://www.goldapi.io/api/XAU/USD',
+    key: process.env.GOLDAPI_KEY ?? '',
     timeout: 10_000,
-  },
-  tradingview: {
-    url: 'https://www.tradingview.com/symbols/XAUUSD/',
   },
   conversion: {
     luongToCay: 10,
-    ozToCay: 8.294,
+    ozToCay: 0.8294,  // 1 troy oz = 31.1g, 1 cây = 37.5g → 31.1/37.5 = 0.8294
     defaultUsdToVnd: 26_500,
   },
   scraping: {

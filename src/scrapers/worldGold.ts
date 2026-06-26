@@ -1,81 +1,76 @@
 import axios from 'axios';
-import { Browser } from 'playwright';
 import { WorldGoldPrice } from '../types';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 
-async function fetchMetalsLive(): Promise<WorldGoldPrice | null> {
+async function fetchGoldAPI(): Promise<WorldGoldPrice | null> {
   try {
-    const response = await axios.get(config.metals.url, {
-      timeout: config.metals.timeout,
+    const response = await axios.get(config.goldapi.url, {
+      timeout: config.goldapi.timeout,
+      headers: {
+        'x-access-token': config.goldapi.key,
+        'Content-Type': 'application/json',
+      },
     });
 
-    const spotPrice = response.data?.spot?.gold as number | undefined;
+    // Use ask price = giá bán ra (what you pay to buy gold)
+    const askPrice = response.data?.ask as number | undefined;
+    const fallbackPrice = response.data?.price as number | undefined;
+    const price = askPrice ?? fallbackPrice;
 
-    if (!spotPrice || spotPrice < 1000) {
-      throw new Error(`Invalid gold price from metals.live: ${spotPrice}`);
+    if (!price || price < 1000) {
+      throw new Error(`Invalid ask price from GoldAPI: ${price}`);
     }
 
-    logger.info(`✓ metals.live: ${spotPrice} USD/oz`);
+    logger.info(`✓ GoldAPI ask: ${price} USD/oz`);
 
     return {
-      spotPrice: parseFloat(String(spotPrice)),
+      askPrice: price,
       timestamp: new Date(),
-      source: 'metals.live',
+      source: 'goldapi',
     };
   } catch (error) {
-    logger.warn(`metals.live API failed: ${(error as Error).message}`);
+    logger.warn(`GoldAPI failed: ${(error as Error).message}`);
     return null;
   }
 }
 
-async function fetchTradingView(browser: Browser): Promise<WorldGoldPrice | null> {
-  const page = await browser.newPage();
-
+async function fetchYahooFinance(): Promise<WorldGoldPrice | null> {
   try {
-    logger.info('Trying TradingView fallback...');
+    const response = await axios.get(
+      'https://query1.finance.yahoo.com/v8/finance/chart/GC=F',
+      {
+        timeout: 10_000,
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+      }
+    );
 
-    await page.goto(config.tradingview.url, {
-      waitUntil: 'networkidle',
-      timeout: config.scraping.timeout,
-    });
+    // Yahoo has no bid/ask in this endpoint — regularMarketPrice is close enough
+    const price = response.data?.chart?.result?.[0]?.meta?.regularMarketPrice as number | undefined;
 
-    await page.waitForSelector('span', { timeout: 10_000 });
-
-    let priceText = await page.locator('[class*="lastPrice"]').first().textContent().catch(() => null);
-
-    if (!priceText) {
-      priceText = await page.locator('span[class*="price"]').first().textContent().catch(() => null);
+    if (!price || price < 1000) {
+      throw new Error(`Invalid price from Yahoo Finance: ${price}`);
     }
 
-    const match = priceText?.match(/[\d,]+\.?\d*/)?.[0];
-    const spotPrice = parseFloat((match ?? '').replace(/,/g, ''));
-
-    if (!spotPrice || spotPrice < 1000) {
-      throw new Error(`Invalid TradingView price: ${spotPrice}`);
-    }
-
-    logger.info(`✓ TradingView: ${spotPrice} USD/oz`);
+    logger.info(`✓ Yahoo Finance (GC=F): ${price} USD/oz`);
 
     return {
-      spotPrice,
+      askPrice: price,
       timestamp: new Date(),
-      source: 'tradingview',
+      source: 'yahoo',
     };
   } catch (error) {
-    logger.warn(`TradingView scrape failed: ${(error as Error).message}`);
+    logger.warn(`Yahoo Finance failed: ${(error as Error).message}`);
     return null;
-  } finally {
-    await page.close();
   }
 }
 
-export async function fetchWorldGoldPrice(browser: Browser): Promise<WorldGoldPrice> {
-  const result = await fetchMetalsLive();
+export async function fetchWorldGoldPrice(): Promise<WorldGoldPrice> {
+  const result = await fetchGoldAPI();
   if (result) return result;
 
-  logger.info('Primary source failed, trying TradingView fallback...');
-  const fallback = await fetchTradingView(browser);
+  logger.info('GoldAPI failed, trying Yahoo Finance fallback...');
+  const fallback = await fetchYahooFinance();
   if (fallback) return fallback;
 
   throw new Error('All world gold sources exhausted');

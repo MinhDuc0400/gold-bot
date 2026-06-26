@@ -3,21 +3,24 @@ import { getData } from '../scrapers';
 import { formatGoldMessage } from '../utils/formatter';
 import { logger } from '../utils/logger';
 
-const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
+export const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
+
+bot.use(async (ctx, next) => {
+  const messageDate = ctx.message?.date ?? 0;
+  const now = Math.floor(Date.now() / 1000);
+  if (now - messageDate > 60) return; // drop stale updates
+  return next();
+});
 
 bot.command('gold', async (ctx) => {
   try {
     logger.info(`/gold command from user ${ctx.from?.id}`);
     await ctx.sendChatAction('typing');
-
     const data = await getData();
-    const message = formatGoldMessage(data);
-
-    await ctx.reply(message);
+    await ctx.reply(formatGoldMessage(data));
   } catch (error) {
-    const msg = `❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
-    await ctx.reply(msg);
-    logger.error(`/gold command failed: ${error}`);
+    await ctx.reply(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error(`/gold failed: ${error}`);
   }
 });
 
@@ -29,37 +32,29 @@ bot.command('help', (ctx) => {
 });
 
 bot.command('status', (ctx) => {
-  ctx.reply('✅ Bot is running\n⏰ Next notification: 08:00 AM Vietnam time');
+  ctx.reply('✅ Bot is running\n⏰ Daily notification: 08:00 AM Vietnam time');
 });
 
 bot.catch((err, ctx) => {
-  logger.error(`Telegram error for update ${ctx.updateType}: ${(err as Error).message}`);
+  logger.error(`Telegram error for ${ctx.updateType}: ${(err as Error).message}`);
 });
 
 export async function sendDailyNotification(): Promise<void> {
   const chatId = parseInt(process.env.TELEGRAM_CHAT_ID!);
-
   try {
     logger.info('=== Daily notification started ===');
-
     const data = await getData();
-    const message = formatGoldMessage(data);
-
-    await bot.telegram.sendMessage(chatId, message);
-
-    logger.info('✓ Daily notification sent successfully');
+    await bot.telegram.sendMessage(chatId, formatGoldMessage(data));
+    logger.info('✓ Daily notification sent');
   } catch (error) {
     logger.error(`✗ Daily notification failed: ${(error as Error).message}`);
-
     try {
       await bot.telegram.sendMessage(
         chatId,
         `⚠️ Gold bot error:\n${error instanceof Error ? error.message : 'Unknown error'}`
       );
-    } catch (sendErr) {
-      logger.error(`Failed to send error alert: ${sendErr}`);
+    } catch (e) {
+      logger.error(`Failed to send error alert: ${e}`);
     }
   }
 }
-
-export { bot };
