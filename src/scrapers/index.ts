@@ -23,7 +23,7 @@ export async function getData(): Promise<GoldData> {
   ]);
 
   const data: GoldData = {
-    vnPrice: vnResult ? { sellPrice: vnResult.sellPrice, source: 'sjc' } : null,
+    vnPrice: vnResult ? { buyPrice: vnResult.buyPrice, sellPrice: vnResult.sellPrice, source: 'sjc' } : null,
     worldPrice: { askPrice: worldResult.askPrice, source: worldResult.source },
     exchangeRate,
     timestamp: new Date(),

@@ -28,19 +28,22 @@ export async function fetchVNGoldPrice(): Promise<SJCPrice> {
   }
 
   const extractNum = (s: string) => parseInt(s.replace(/[^\d]/g, ''), 10);
+  const buyRaw = extractNum(tdMatches[0]);
   const sellRaw = extractNum(tdMatches[1]);
 
-  if (!sellRaw || sellRaw < 10_000) {
-    throw new Error(`Unexpected sell price value: ${sellRaw}`);
+  if (!buyRaw || buyRaw < 10_000 || !sellRaw || sellRaw < 10_000) {
+    throw new Error(`Unexpected price values: buy=${buyRaw} sell=${sellRaw}`);
   }
 
   // Page displays prices in 1,000 VND units per cây (e.g. 148,500 → 148,500,000 VND/cây)
+  const buyPrice = buyRaw * 1_000;
   const sellPrice = sellRaw * 1_000;
 
-  logger.info(`✓ tygiausd ${TARGET_ROW} sell: ${sellRaw.toLocaleString()} (×1000) = ${sellPrice.toLocaleString()} VND/cây`);
+  logger.info(`✓ tygiausd ${TARGET_ROW}: buy=${buyRaw.toLocaleString()} sell=${sellRaw.toLocaleString()} (×1000 VND/cây)`);
 
   return {
     source: 'sjc',
+    buyPrice,
     sellPrice,
     timestamp: new Date(),
     url: config.tygiausd.url,

@@ -15,7 +15,7 @@ export function formatGoldMessage(data: GoldData): string {
     const trendEmoji = delta > 0 ? '📈' : '📉';
     const deltaSign = delta > 0 ? '+' : '';
 
-    vnLine = `🇻🇳 Vàng SJC: ${fmt(vnCay)} VND/cây`;
+    vnLine = `🇻🇳 Vàng SJC: Mua ${fmt(data.vnPrice.buyPrice)} / Bán ${fmt(vnCay)} VND/cây`;
     deltaLine = `📊 Chênh lệch: ${trendEmoji} ${fmt(Math.abs(delta))} VND/cây\n   (${deltaSign}${deltaPct}%)`;
   }
 
