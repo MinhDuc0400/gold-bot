@@ -4,8 +4,8 @@ export const config = {
     minValidPricePerLuong: 100_000_000, // VND/lượng sanity check for scrape
     minValidPricePerCay: 10_000_000,    // VND/cây sanity check
   },
-  btmc: {
-    url: 'http://api.btmc.vn/api/BTMCAPI/getpricebtmc?key=3kd8ub1llcg9t45hnoh8hmn7t5kc2v',
+  tygiausd: {
+    url: 'https://tygiausd.org/giavang/gia-vang-hom-nay',
   },
   vietcombank: {
     url: 'https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=68',

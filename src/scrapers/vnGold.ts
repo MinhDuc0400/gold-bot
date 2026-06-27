@@ -4,29 +4,47 @@ import { config } from '../config';
 import { logger } from '../utils/logger';
 
 export async function fetchVNGoldPrice(): Promise<SJCPrice> {
-  const response = await axios.get(config.btmc.url, { timeout: 7_000 });
-  const items: Record<string, string>[] = response.data?.DataList?.Data ?? [];
+  const response = await axios.get(config.tygiausd.url, {
+    timeout: 7_000,
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; gold-bot/1.0)' },
+    responseType: 'text',
+  });
 
-  for (const item of items) {
-    const row = item['@row'];
-    const name: string = item[`@n_${row}`] ?? '';
-    const sellRaw: string = item[`@ps_${row}`] ?? '';
+  const html: string = response.data;
 
-    if (name.toUpperCase().includes('VÀNG MIẾNG SJC') && sellRaw) {
-      const pricePerChi = parseInt(sellRaw, 10);
-      if (pricePerChi > 1_000_000) {
-        // BTMC returns VND/chỉ → ×10 to get VND/cây (1 cây = 10 chỉ)
-        const sellPrice = pricePerChi * 10;
-        logger.info(`✓ BTMC SJC sell: ${pricePerChi.toLocaleString()} VND/chỉ = ${sellPrice.toLocaleString()} VND/cây`);
-        return {
-          source: 'sjc',
-          sellPrice,
-          timestamp: new Date(),
-          url: config.btmc.url,
-        };
-      }
-    }
+  // Find the "Vàng miếng SJC" row and extract the two td values after it
+  const rowMatch = html.match(
+    /Vàng miếng SJC[\s\S]*?<td[^>]*class="text-right"[^>]*>\s*([\d,]+)/
+  );
+
+  if (!rowMatch) {
+    throw new Error('Vàng miếng SJC row not found on tygiausd page');
   }
 
-  throw new Error('VÀNG MIẾNG SJC not found in BTMC response');
+  // Grab both td values (buy, sell) from the row block
+  const rowBlock = html.slice(html.indexOf('Vàng miếng SJC'));
+  const tdMatches = rowBlock.match(/<td[^>]*class="text-right"[^>]*>\s*([\d,]+)/g);
+
+  if (!tdMatches || tdMatches.length < 2) {
+    throw new Error('Could not find buy/sell prices in Vàng miếng SJC row');
+  }
+
+  const extractNum = (s: string) => parseInt(s.replace(/[^\d]/g, ''), 10);
+  const sellRaw = extractNum(tdMatches[1]);
+
+  if (!sellRaw || sellRaw < 10_000) {
+    throw new Error(`Unexpected sell price value: ${sellRaw}`);
+  }
+
+  // Page displays prices in 1,000 VND units per cây (e.g. 168,800 → 168,800,000 VND/cây)
+  const sellPrice = sellRaw * 1_000;
+
+  logger.info(`✓ tygiausd SJC sell: ${sellRaw.toLocaleString()} (×1000) = ${sellPrice.toLocaleString()} VND/cây`);
+
+  return {
+    source: 'sjc',
+    sellPrice,
+    timestamp: new Date(),
+    url: config.tygiausd.url,
+  };
 }

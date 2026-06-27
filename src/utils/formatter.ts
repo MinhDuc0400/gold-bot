@@ -28,7 +28,7 @@ ${vnLine}
 ${deltaLine}
 
 💱 Tỷ giá: ${fmt(data.exchangeRate)} VND/USD
-📍 Nguồn: BTMC/SJC, ${data.worldPrice.source}
+📍 Nguồn: tygiausd/SJC, ${data.worldPrice.source}
 
 ⏰ ${new Date().toLocaleString('vi-VN')}
   `.trim();
