@@ -23,7 +23,7 @@ export function formatGoldMessage(data: GoldData): string {
 🏆 GIÁ VÀNG HÔM NAY (Giá bán ra)
 ━━━━━━━━━━━━━━━━━━
 ${vnLine}
-🌍 Vàng TG: ${fmt(worldCay)} VND/cây
+🌍 Vàng TG: ${fmt(worldCay)} VND/cây (${data.worldPrice.askPrice.toFixed(0)} USD/oz)
 ━━━━━━━━━━━━━━━━━━
 ${deltaLine}
 
