@@ -3,6 +3,8 @@ import { SJCPrice } from '../types';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 
+const TARGET_ROW = 'Phú Qúy SJC';
+
 export async function fetchVNGoldPrice(): Promise<SJCPrice> {
   const response = await axios.get(config.tygiausd.url, {
     timeout: 7_000,
@@ -12,21 +14,17 @@ export async function fetchVNGoldPrice(): Promise<SJCPrice> {
 
   const html: string = response.data;
 
-  // Find the "Vàng miếng SJC" row and extract the two td values after it
-  const rowMatch = html.match(
-    /Vàng miếng SJC[\s\S]*?<td[^>]*class="text-right"[^>]*>\s*([\d,]+)/
-  );
-
-  if (!rowMatch) {
-    throw new Error('Vàng miếng SJC row not found on tygiausd page');
+  const rowIdx = html.indexOf(TARGET_ROW);
+  if (rowIdx === -1) {
+    throw new Error(`"${TARGET_ROW}" row not found on tygiausd page`);
   }
 
-  // Grab both td values (buy, sell) from the row block
-  const rowBlock = html.slice(html.indexOf('Vàng miếng SJC'));
+  // Slice from the row header and grab the next two td.text-right values (buy, sell)
+  const rowBlock = html.slice(rowIdx);
   const tdMatches = rowBlock.match(/<td[^>]*class="text-right"[^>]*>\s*([\d,]+)/g);
 
   if (!tdMatches || tdMatches.length < 2) {
-    throw new Error('Could not find buy/sell prices in Vàng miếng SJC row');
+    throw new Error(`Could not find buy/sell prices in "${TARGET_ROW}" row`);
   }
 
   const extractNum = (s: string) => parseInt(s.replace(/[^\d]/g, ''), 10);
@@ -36,10 +34,10 @@ export async function fetchVNGoldPrice(): Promise<SJCPrice> {
     throw new Error(`Unexpected sell price value: ${sellRaw}`);
   }
 
-  // Page displays prices in 1,000 VND units per cây (e.g. 168,800 → 168,800,000 VND/cây)
+  // Page displays prices in 1,000 VND units per cây (e.g. 148,500 → 148,500,000 VND/cây)
   const sellPrice = sellRaw * 1_000;
 
-  logger.info(`✓ tygiausd SJC sell: ${sellRaw.toLocaleString()} (×1000) = ${sellPrice.toLocaleString()} VND/cây`);
+  logger.info(`✓ tygiausd ${TARGET_ROW} sell: ${sellRaw.toLocaleString()} (×1000) = ${sellPrice.toLocaleString()} VND/cây`);
 
   return {
     source: 'sjc',
